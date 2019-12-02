@@ -1,0 +1,64 @@
+'1. Find the customer with the highest transaction value as of today.
+Consider :
+• Transaction_Status = ‘Success’
+• Transaction_Type = ‘Purchase’
+• Transaction_Value = NAV_Value * No_of_Units'
+
+select max(NAV_Value * No_of_Units) 
+from Mutual_fund_Transaction_Table MF, Customer_Details CD 
+where Transaction_Status = 'Sucess' 
+and Transaction_Type = 'Purchase'
+and MF.Customer_id = CD.Customer_id;
+
+'2. Count of successful transactions in the month of April - 2019'
+
+select count(*) from Mutual_fund_Transaction_Tablel 
+where Transaction_Status = 'Sucess' 
+and Transaction_time like "2019-04%";
+
+'3. Number of new customers in the month of Jan – 2019, who are not banned as of now and
+have made more than 4 purchases'
+
+select CD* ,MF*
+from Customer_Details CD,Mutual_fund_Transaction_Table MF
+where Customer_Join_time like '2019-01%' 
+and Banned = 0 and Transaction_Type = 'Purchase'
+group by Customer_id having count(Transaction_id)>3;
+
+'4. First 5 Rows of top paying Male & Female customers (in a single output)'
+
+select customer.*
+from  Customer_Details customer
+where customer.Customer_id in (select CD.Customer_id,(MF.NAV_Value * MF.No_of_Units) as Top_paying_male 
+								from Mutual_fund_Transaction_Table MF ,Customer_Details CD 
+								where MF.Customer_id = CD.Customer_id and CD.Gender = 'Male' 
+								group by customer_id 
+								order by Top_paying_male Desc limit 0,5 ) or
+customer.Customer_id in (select CD.Customer_id,(MF.NAV_Value * MF.No_of_Units) as Top_paying_female 
+							from Mutual_fund_Transaction_Table MF ,Customer_Details CD 
+							where MF.Customer_id = CD.Customer_id and CD.Gender = 'Female' 
+							group by customer_id 
+							order by Top_paying_Female Desc limit 0,5) ;
+							
+'5. (Bonus) – Completion of this answer will give you added advantage in the interview round
+Given the Mutal_Fund_Transaction_Table a SQL Query to create a GMV Retention plot.
+Month Start is the 1st Month of 2019 in which the Customer_id placed a successful order,
+GMV-Month 0 is the Sum of order Total of User ids who placed their 1st Order in Month 0.
+Out of those User ids, GMV-Month 1 is the Sum of order Total of users who placed an order
+in 1st Month + 1, Then GMV-Month 2 is 1st Month + 2 and so on till GMV-Month_6
+(June-2019).'
+
+jan_period  AS(
+	select distinct(customer_id)
+	from Customer_Details cd
+	where month(Customer_Join_Time) = '1' and year(Customer_Join_Time) = '2019'
+)
+
+select year(Customer_Join_Time) as Year_period, month(Customer_Join_Time) as month_period, count(distinct customer_id as total_number)
+from Customer_Details cd 
+where year(Customer_Join_Time) = '2019' and month(Customer_Join_Time) <= '6' and cd.customer_id In (jan_period)
+group by Year_period,month_period;
+
+
+
+
